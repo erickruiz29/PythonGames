@@ -1,0 +1,10 @@
+-Make it so when player collides with another unit (such as another character) it doesnt overlap or underlap.
+-adding to the last point, make it so when the hero touches an enemy he loses health and is pushed back
+
+-get details from a block that has been touched
+
+-fix movement when going diagnol in any direction
+
+-create camera class for movement of screen across large map
+
+-write a list of contributions list (sprites from that website)
