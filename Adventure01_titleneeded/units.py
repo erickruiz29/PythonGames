@@ -1,6 +1,7 @@
 import spritesheet
 import pygame
-from constants import attack, colors, currentmap
+from constants import attack, colors, currentmap, dirs
+from random import randrange
 
 
 class Unit(pygame.sprite.Sprite):
@@ -66,8 +67,8 @@ class Hero(Unit):
         #up/down
         self.rect.y += self.y_s
 
-        if(self.rect.y+attack.HERO_HEIGHT > currentmap.width):
-            self.rect.y = currentmap.width-attack.HERO_HEIGHT
+        if(self.rect.y+attack.HERO_HEIGHT > currentmap.height):
+            self.rect.y = currentmap.height-attack.HERO_HEIGHT
         elif(self.rect.y < 0):
             self.rect.y = 0
 
@@ -77,8 +78,14 @@ class Hero(Unit):
             if isinstance(block, Unit):
                 if(block.sid == self.sid):
                     continue
-                if isinstance(block, Enemy):
+                if isinstance(block, Enemy) and not self.attacking:
                     self.health -= 1
+                elif(isinstance(block, Enemy) and self.attacking):
+                    block.attacked = True
+                    if self.y_s > 0:
+                        block.attacked_dir = dirs.up
+                    else:
+                        block.attacked_dir = dirs.down
             if self.y_s > 0:
                 self.rect.bottom = block.rect.top
             else:
@@ -109,8 +116,8 @@ class Hero(Unit):
         #left/right
         self.rect.x += self.x_s
 
-        if(self.rect.x+attack.HERO_WIDTH > currentmap.height):
-            self.rect.x = currentmap.height-attack.HERO_WIDTH
+        if(self.rect.x+attack.HERO_WIDTH > currentmap.width):
+            self.rect.x = currentmap.width-attack.HERO_WIDTH
         elif(self.rect.x < 0):
             self.rect.x = 0
 
@@ -141,14 +148,22 @@ class Hero(Unit):
             if isinstance(block, Unit):
                 if(block.sid == self.sid):
                     continue
-                if isinstance(block, Enemy):
+                if isinstance(block, Enemy) and not self.attacking:
                     self.health -= 1
+                elif(isinstance(block, Enemy) and self.attacking):
+                    block.attacked = True
+                    if self.x_s > 0:
+                        block.attacked_dir = dirs.left
+                    else:
+                        block.attacked_dir = dirs.right
+
             if self.x_s > 0: #going right
                 self.rect.right = block.rect.left
             else: #going left
                 self.rect.left = block.rect.right
 
         self.image = self.sprites[self.cur_sprite]
+        self.health -= 1
 
     def __init__(self, x,y, s_id, name):
         Unit.__init__(self,x,y,s_id)
@@ -158,11 +173,52 @@ class Hero(Unit):
 class Enemy(Unit):
 
     attacking = True
+    attacked = False
+    attacked_dir = 0
 
     def __init__(self,x,y,s_id):
         Unit.__init__(self,x,y,s_id)
 
 class Enemy01(Enemy):
+    def get_directions(self):
+
+        if self.attacked:
+            if(self.attacked_dir == dirs.left):
+                self.x_s = 9
+            elif(self.attacked_dir == dirs.right):
+                self.x_s = -9
+            elif(self.attacked_dir == dirs.up):
+                self.y_s = 9
+            elif(self.attacked_dir == dirs.down):
+                self.y_s = -9
+            self.attacked = False
+        else:
+            self.x_s = randrange(0,10)
+            self.y_s = randrange(0,10)
+
+    def move(self, objects):
+        self.get_directions()
+        #up/down
+        self.rect.y += self.y_s
+
+        if(self.rect.y+attack.HERO_HEIGHT > currentmap.height):
+            self.rect.y = currentmap.height-attack.HERO_HEIGHT
+        elif(self.rect.y < 0):
+            self.rect.y = 0
+
+        #if hit walls
+        block_hit_list = pygame.sprite.spritecollide(self, objects, False)
+        for block in block_hit_list:
+            if isinstance(block, Unit):
+                if(block.sid == self.sid):
+                    continue
+                if isinstance(block, Hero) and self.attacked:
+                    self.health -= 1
+
+            if self.y_s > 0:
+                self.rect.bottom = block.rect.top
+            else:
+                self.rect.top = block.rect.bottom
 
     def __init__(self,x,y,s_id):
         Enemy.__init__(self,x,y,s_id)

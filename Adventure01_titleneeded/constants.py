@@ -48,3 +48,9 @@ class layers(object):
     shadows    = 2
     shadows2   = 3
     top        = 4
+
+class dirs(object):
+    left    = 0
+    right   = 1
+    up      = 2
+    down    = 3

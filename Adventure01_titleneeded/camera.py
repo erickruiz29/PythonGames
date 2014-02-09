@@ -5,6 +5,10 @@ from constants import attack, const, currentmap, colors
 
 class Camera(object):
 
+    def setCamera(self, cx,cy):
+        self.wcp_x = cx
+        self.wcp_y = cy
+        
     def wall_list(self):
         return self.world[self.cur_map].wall_list
     #world coord to camera coord
@@ -59,6 +63,9 @@ class Camera(object):
         self.subscreen.blit(current_map.bg,(0,0),area)
         #blit fg
         self.subscreen.blit(current_map.fg,(0,0),area)
+        #blit shadows
+        self.subscreen.blit(current_map.sh1,(0,0),area)
+        self.subscreen.blit(current_map.sh2,(0,0),area)
         #blit character(s)
         self.subscreen.blit(hero.image,(cp_hero[0],cp_hero[1]))
         #blit top
@@ -74,11 +81,13 @@ class Camera(object):
         self.world = []
 
         #load first map
-        mapfile = "map02.tmx"
+        mapfile = "map03.tmx"
         map00 = maps.MapRenderer(mapfile)
         map00.renderSurfaces()
         currentmap.width = map00.width
         currentmap.height = map00.height
+        map00.sh1.set_alpha(125)
+        map00.sh2.set_alpha(125)
 
         #add wall at 100 pixels
         wall = walls.Wall(100,100,10,10,colors.blue)

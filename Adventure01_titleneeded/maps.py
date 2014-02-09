@@ -25,8 +25,12 @@ class MapRenderer(object):
 
         self.fg.fill(colors.hotpink)
         self.tp.fill(colors.hotpink)
+        self.sh1.fill(colors.hotpink)
+        self.sh2.fill(colors.hotpink)
         self.fg.set_colorkey(colors.hotpink)
         self.tp.set_colorkey(colors.hotpink)
+        self.sh1.set_colorkey(colors.hotpink)
+        self.sh2.set_colorkey(colors.hotpink)
 
 
     def renderSurfaces(self):
