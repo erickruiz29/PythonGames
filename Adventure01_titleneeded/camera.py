@@ -8,7 +8,7 @@ class Camera(object):
     def setCamera(self, cx,cy):
         self.wcp_x = cx
         self.wcp_y = cy
-        
+
     def wall_list(self):
         return self.world[self.cur_map].wall_list
     #world coord to camera coord
@@ -81,7 +81,7 @@ class Camera(object):
         self.world = []
 
         #load first map
-        mapfile = "map03.tmx"
+        mapfile = "../../map03.tmx"
         map00 = maps.MapRenderer(mapfile)
         map00.renderSurfaces()
         currentmap.width = map00.width

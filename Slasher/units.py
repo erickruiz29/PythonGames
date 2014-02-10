@@ -1,6 +1,6 @@
 import spritesheet
 import pygame
-from constants import attack, colors, currentmap, dirs
+from constants import attack, colors, currentmap, dirs, const
 from random import randrange
 
 
@@ -42,6 +42,18 @@ class Unit(pygame.sprite.Sprite):
         self.x_s += x
         self.y_s += y
 
+    def calc_grav(self):
+        """ Calculate effect of gravity. """
+        if self.y_s == 0:
+            self.y_s = 7
+        else:
+            self.y_s += 5
+
+        # See if we are on the ground.
+        if self.rect.y >= const.SCREEN_WIDTH - self.rect.height and self.y_s >= 0:
+            self.change_y = 0
+            self.rect.y = const.SCREEN_HEIGHT - self.rect.height
+
 
     def __init__(self, x,y, s_id):
         self.sheet = spritesheet.Spritesheet('img/attack.gif')
@@ -63,164 +75,133 @@ class Hero(Unit):
 
     attacking = False
 
-    def move(self, objects):
-        #up/down
-        self.rect.y += self.y_s
+    def stop(self):
+        self.x_s = 0
 
-        if(self.rect.y+attack.HERO_HEIGHT > currentmap.height):
-            self.rect.y = currentmap.height-attack.HERO_HEIGHT
-        elif(self.rect.y < 0):
-            self.rect.y = 0
+    def go_right(self):
+        self.x_s = 10
 
-        #if hit walls
+    def go_left(self):
+        self.x_s = -10
+
+    def attack(self):
+        if(self.attack_timer == 0):
+            self.attack_timer = 9
+
+
+    def jump(self, objects):
+        """ Called when user hits 'jump' button. """
+
+        # move down a bit and see if there is a platform below us.
+        # Move down 2 pixels because it doesn't work well if we only move down 1
+        # when working with a platform moving down.
+        self.rect.y += 2
+        platform_hit_list = pygame.sprite.spritecollide(self, objects, False)
+        self.rect.y -= 2
+
+        # If it is ok to jump, set our speed upwards
+        if len(platform_hit_list) > 0 or self.rect.bottom >= const.SCREEN_HEIGHT:
+            self.y_s = -35
+
+    def update(self, objects):
+        # Gravity
+        self.calc_grav()
+
+        # Move left/right
+        self.rect.x += self.x_s
+
+        #check map edges
+        if(self.rect.x+self.rect.width > currentmap.width):
+            self.rect.x = currentmap.width-self.rect.width
+        elif(self.rect.x < 0):
+            self.rect.x = 0
+
+        # See if we hit anything
         block_hit_list = pygame.sprite.spritecollide(self, objects, False)
         for block in block_hit_list:
             if isinstance(block, Unit):
                 if(block.sid == self.sid):
                     continue
-                if isinstance(block, Enemy) and not self.attacking:
-                    self.health -= 1
-                elif(isinstance(block, Enemy) and self.attacking):
-                    block.attacked = True
-                    if self.y_s > 0:
-                        block.attacked_dir = dirs.up
-                    else:
-                        block.attacked_dir = dirs.down
-            if self.y_s > 0:
-                self.rect.bottom = block.rect.top
-            else:
-                self.rect.top = block.rect.bottom
+            # If we are moving right,
+            # set our right side to the left side of the item we hit
+            if self.x_s > 0:
+                self.rect.right = block.rect.left
+            elif self.x_s < 0:
+                # Otherwise if we are moving left, do the opposite.
+                self.rect.left = block.rect.right
 
-        if self.y_s > 0: #going down
-            if self.attacking:
-                if self.cur_sprite == attack.HIT_DOWN2:
-                    self.cur_sprite = attack.HIT_DOWN1
-                else:
-                    self.cur_sprite = attack.HIT_DOWN2
-            elif self.cur_sprite == attack.WALK_DOWN2:
-                self.cur_sprite = attack.WALK_DOWN1
-            else:
-                self.cur_sprite = attack.WALK_DOWN2
+        # Move up/down
+        self.rect.y += self.y_s
 
-        if self.y_s < 0: #going up
-            if self.attacking:
-                if self.cur_sprite == attack.HIT_UP2:
-                    self.cur_sprite = attack.HIT_UP1
-                else:
-                    self.cur_sprite = attack.HIT_UP2
-            elif self.cur_sprite == attack.WALK_UP2:
-                self.cur_sprite = attack.WALK_UP1
-            else:
-                self.cur_sprite = attack.WALK_UP2
+        if(self.rect.y+self.rect.height > currentmap.height):
+            self.rect.y = currentmap.height-self.rect.height
+        elif(self.rect.y < 0):
+            self.rect.y = 0
 
-        #left/right
-        self.rect.x += self.x_s
-
-        if(self.rect.x+attack.HERO_WIDTH > currentmap.width):
-            self.rect.x = currentmap.width-attack.HERO_WIDTH
-        elif(self.rect.x < 0):
-            self.rect.x = 0
-
-        if self.x_s > 0: #going right
-            if self.attacking:
-                if self.cur_sprite == attack.HIT_RIGHT2:
-                    self.cur_sprite = attack.HIT_RIGHT1
-                else:
-                    self.cur_sprite = attack.HIT_RIGHT2
-            elif self.cur_sprite == attack.WALK_RIGHT2:
-                self.cur_sprite = attack.WALK_RIGHT1
-            else:
-                self.cur_sprite = attack.WALK_RIGHT2
-
-        if self.x_s < 0: #going left
-            if self.attacking:
-                if self.cur_sprite == attack.HIT_LEFT2:
-                    self.cur_sprite = attack.HIT_LEFT1
-                else:
-                    self.cur_sprite = attack.HIT_LEFT2
-            elif self.cur_sprite == attack.WALK_LEFT2:
-                self.cur_sprite = attack.WALK_LEFT1
-            else:
-                self.cur_sprite = attack.WALK_LEFT2
-
+        # Check and see if we hit anything
         block_hit_list = pygame.sprite.spritecollide(self, objects, False)
-        for  block in block_hit_list:
+        for block in block_hit_list:
             if isinstance(block, Unit):
                 if(block.sid == self.sid):
                     continue
-                if isinstance(block, Enemy) and not self.attacking:
-                    self.health -= 1
-                elif(isinstance(block, Enemy) and self.attacking):
-                    block.attacked = True
-                    if self.x_s > 0:
-                        block.attacked_dir = dirs.left
-                    else:
-                        block.attacked_dir = dirs.right
+            # Reset our position based on the top/bottom of the object.
+            if self.y_s > 0:
+                self.rect.bottom = block.rect.top
+            elif self.y_s < 0:
+                self.rect.top = block.rect.bottom
 
-            if self.x_s > 0: #going right
-                self.rect.right = block.rect.left
-            else: #going left
-                self.rect.left = block.rect.right
+            # Stop our vertical movement
+            self.y_s = 0
 
-        self.image = self.sprites[self.cur_sprite]
-        self.health -= 1
+        #attack
+        if(self.attack_timer > 0):
+            self.attack_timer -= 1
+            self.attack_s.rect.x = self.rect.x+self.rect.width
+            self.attack_s.rect.y = self.rect.y
+        if(self.attack_timer == 9):
+            objects.add(self.attack_s)
+        if(self.attack_timer == 0):
+            self.attack_s.kill()
+        self.attack_s.update(objects)
+
 
     def __init__(self, x,y, s_id, name):
         Unit.__init__(self,x,y,s_id)
         self.name = name
         self.health = 20
+        sl = Slash(self.rect.x+self.rect.width,self.rect.y)
+        self.attack_s = sl
+        self.attack_timer = 0
 
 class Enemy(Unit):
-
-    attacking = True
-    attacked = False
-    attacked_dir = 0
 
     def __init__(self,x,y,s_id):
         Unit.__init__(self,x,y,s_id)
 
 class Enemy01(Enemy):
-    def get_directions(self):
 
-        if self.attacked:
-            if(self.attacked_dir == dirs.left):
-                self.x_s = 9
-            elif(self.attacked_dir == dirs.right):
-                self.x_s = -9
-            elif(self.attacked_dir == dirs.up):
-                self.y_s = 9
-            elif(self.attacked_dir == dirs.down):
-                self.y_s = -9
-            self.attacked = False
-        else:
-            self.x_s = randrange(0,10)
-            self.y_s = randrange(0,10)
-
-    def move(self, objects):
-        self.get_directions()
-        #up/down
-        self.rect.y += self.y_s
-
-        if(self.rect.y+attack.HERO_HEIGHT > currentmap.height):
-            self.rect.y = currentmap.height-attack.HERO_HEIGHT
-        elif(self.rect.y < 0):
-            self.rect.y = 0
-
-        #if hit walls
-        block_hit_list = pygame.sprite.spritecollide(self, objects, False)
-        for block in block_hit_list:
-            if isinstance(block, Unit):
-                if(block.sid == self.sid):
-                    continue
-                if isinstance(block, Hero) and self.attacked:
-                    self.health -= 1
-
-            if self.y_s > 0:
-                self.rect.bottom = block.rect.top
-            else:
-                self.rect.top = block.rect.bottom
+    def update(self):
+        if(self.health <= 0):
+            self.kill()
+        print(self.health)
 
     def __init__(self,x,y,s_id):
         Enemy.__init__(self,x,y,s_id)
-        self.health = 3
+        self.health = 10
         self.name = "Enemy01"
+
+class Slash(pygame.sprite.Sprite):
+
+    def update(self, objects):
+        block_hit_list = pygame.sprite.spritecollide(self, objects, False)
+        for block in block_hit_list:
+            if(isinstance(block,Enemy)):
+                block.health -= 1 #add a funct to make it move back
+
+    def __init__(self, x,y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([50, attack.HERO_HEIGHT])
+        self.image.fill(colors.blue)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y

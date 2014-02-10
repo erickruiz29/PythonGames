@@ -18,19 +18,26 @@ class MapRenderer(object):
         self.height = self.tiledmap.height * self.tiledmap.tileheight
 
         self.bg  = pygame.Surface((self.width,self.height))
-        self.fg  = pygame.Surface((self.width,self.height))
+        self.fl  = pygame.Surface((self.width,self.height))
+        self.sp  = pygame.Surface((self.width,self.height))
+        #self.fg  = pygame.Surface((self.width,self.height))
         self.tp  = pygame.Surface((self.width,self.height))
-        self.sh1 = pygame.Surface((self.width,self.height))
-        self.sh2 = pygame.Surface((self.width,self.height))
+        #self.sh1 = pygame.Surface((self.width,self.height))
+        #self.sh2 = pygame.Surface((self.width,self.height))
 
-        self.fg.fill(colors.hotpink)
+
+        self.fl.fill(colors.hotpink)
+        self.sp.fill(colors.hotpink)
+        #self.fg.fill(colors.hotpink)
         self.tp.fill(colors.hotpink)
-        self.sh1.fill(colors.hotpink)
-        self.sh2.fill(colors.hotpink)
-        self.fg.set_colorkey(colors.hotpink)
+        #self.sh1.fill(colors.hotpink)
+        #self.sh2.fill(colors.hotpink)
+        self.fl.set_colorkey(colors.hotpink)
+        self.sp.set_colorkey(colors.hotpink)
+        #self.fg.set_colorkey(colors.hotpink)
         self.tp.set_colorkey(colors.hotpink)
-        self.sh1.set_colorkey(colors.hotpink)
-        self.sh2.set_colorkey(colors.hotpink)
+        #self.sh1.set_colorkey(colors.hotpink)
+        #self.sh2.set_colorkey(colors.hotpink)
 
 
     def renderSurfaces(self):
@@ -49,16 +56,12 @@ class MapRenderer(object):
                     tGid = self.tiledmap.getTileGID(x,y,l)
                     if tile and (not tGid == 0) and l==layers.background:
                         self.bg.blit(tile, (x*tw, y*th))
-                    if tile and (not tGid == 0) and l==layers.foreground:
-                        self.fg.blit(tile,(x*tw, y*th))
-                    if tile and (not tGid == 0) and l==layers.shadows:
-                        self.sh1.blit(tile,(x*tw, y*th))
-                    if tile and (not tGid == 0) and l==layers.shadows2:
-                        self.sh2.blit(tile,(x*tw, y*th))
-                    if tile and (not tGid == 0) and l==layers.top:
-                        self.tp.blit(tile,(x*tw, y*th))
+                    if tile and (not tGid == 0) and l==layers.floor:
+                        self.fl.blit(tile,(x*tw, y*th))
+
 
         # add obstructions to wall list
+        bl = pygame.Surface((self.width,self.height))
         for og in self.tiledmap.objectgroups:
             for o in og:
                 wall = walls.Wall(o.x,o.y,o.width,o.height,(0,0,0))

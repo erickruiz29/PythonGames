@@ -35,8 +35,8 @@ class attack(object):
     HERO_HEIGHT = 36
 
 class const(object):
-    screen_width    = 800
-    screen_height   = 640
+    SCREEN_WIDTH    = 800
+    SCREEN_HEIGHT   = 640
 
 class currentmap(object):
     width   = 0
@@ -44,10 +44,7 @@ class currentmap(object):
 
 class layers(object):
     background = 0
-    foreground = 1
-    shadows    = 2
-    shadows2   = 3
-    top        = 4
+    floor      = 1
 
 class dirs(object):
     left    = 0
