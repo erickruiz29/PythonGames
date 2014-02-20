@@ -62,21 +62,16 @@ class Camera(object):
         #blit sprites
         current_map.sp.fill(colors.hotpink)
         sprites.draw(current_map.sp)
+
         #blit bg
         self.subscreen.blit(current_map.bg,(0,0),area)
         #blit floor
         self.subscreen.blit(current_map.fl,(0,0),area)
-        #blit fg
-        #self.subscreen.blit(current_map.fg,(0,0),area)
-        #blit shadows
-        #self.subscreen.blit(current_map.sh1,(0,0),area)
-        #self.subscreen.blit(current_map.sh2,(0,0),area)
+
         #blit character(s)
         self.subscreen.blit(hero.image,(cp_hero[0],cp_hero[1]))
         #blit sprites
         self.subscreen.blit(current_map.sp,(0,0),area)
-        #blit top
-        self.subscreen.blit(current_map.tp,(0,0),area)
 
 
     def __init__(self,w,h):

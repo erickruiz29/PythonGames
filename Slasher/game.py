@@ -22,15 +22,19 @@ class Game(object):
 
         clock = pygame.time.Clock()
 
+        #sprite.groups
+        all_sprites = pygame.sprite.Group()
+        all_units = pygame.sprite.Group()
 
         #initiate player
         player = units.Hero(0,500,1,"Erick")
-        all_sprites_list = pygame.sprite.Group()
-        all_sprites_list.add(player)
+        all_sprites.add(player)
+        all_units.add(player)
 
         #initiate enemies
         enemy = units.Enemy01(500,500,0)
-        all_sprites_list.add(enemy)
+        all_sprites.add(enemy)
+        all_units.add(enemy)
 
         # -------- Main Program Loop -----------
         while not done:
@@ -47,7 +51,8 @@ class Game(object):
                         player.jump(self.view.wall_list())
                     if event.key == pygame.K_SPACE:
                         player.attack()
-                        all_sprites_list.add(player.attack_s)
+                        all_units.add(player.attack_s)
+                        all_sprites.add(player.attack_s)
 
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT and player.x_s < 0:
@@ -56,12 +61,17 @@ class Game(object):
                         player.stop()
 
             # --- Game logic should go here
-            all_sprites_list.add(self.view.wall_list())
-            player.update(all_sprites_list)
-            enemy.update()
+            all_sprites.add(self.view.wall_list())
+
+            #player.update:
+                #move all units
+                    #check if hero slashed enemy
+                    #update alive or death (kill necessaries)
+                    #check if hero touched enemy (update health)
+            player.update(all_sprites)
 
             # --- Drawing code should go here
-            self.view.update(player, all_sprites_list)
+            self.view.update(player, all_units)
 
             pygame.display.flip()
 
